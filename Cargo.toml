@@ -1,0 +1,17 @@
+[package]
+name = "portable-symlink"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.63.0"
+authors = ["Justin Jones <hey.jones@icloud.com>"]
+license = "MIT"
+description = "Create symbolic links and refuse removal of non-link paths."
+keywords = ["symlink", "fs", "windows", "cross-platform", "portable"]
+categories = ["filesystem", "os"]
+readme = "README.md"
+repository = "https://github.com/hey-jj/portable-symlink"
+documentation = "https://docs.rs/portable-symlink"
+
+[lib]
+name = "portable_symlink"
+path = "src/lib.rs"
