@@ -408,6 +408,19 @@ fn scenario_au_05() {
     assert!(!is_directory_kind(Path::new("la")));
 }
 
+#[cfg(windows)]
+#[test]
+fn windows_au_05_fwdslash_normalise() {
+    let tree = TempTree::new("au05n");
+    tree.file("t/b", b"b");
+    let _current = CurrentDir::enter(&tree.root);
+
+    symlink_auto("t/b", "lb").expect("forward-slash target accepted");
+
+    assert_eq!(fs::read("lb").expect("read through link"), b"b");
+    assert!(!is_directory_kind(Path::new("lb")));
+}
+
 #[test]
 fn scenario_au_06() {
     let tree = TempTree::new("au06");
@@ -438,9 +451,28 @@ fn scenario_au_07() {
     symlink_auto("sub/", &link).expect("create link to directory with separator");
 
     assert!(fs::metadata(&link).expect("follow directory link").is_dir());
-    assert_eq!(fs::read_link(link).expect("read link"), Path::new("sub/"));
+    #[cfg(unix)]
+    assert_eq!(fs::read_link(&link).expect("read link"), Path::new("sub/"));
+    #[cfg(windows)]
+    assert_eq!(fs::read_link(&link).expect("read link"), Path::new("sub"));
     #[cfg(windows)]
     assert!(is_directory_kind(&tree.path("l")));
+}
+
+#[cfg(windows)]
+#[test]
+fn windows_au_07_trailing_sep_normalise() {
+    let tree = TempTree::new("au07n");
+    tree.dir("sub2");
+    let link = tree.path("l2");
+
+    symlink_auto("sub2/", &link).expect("trailing-sep dir target accepted");
+
+    assert!(fs::metadata(&link).expect("follow link").is_dir());
+    assert!(is_directory_kind(&link));
+    let stored = fs::read_link(&link).expect("read link");
+    assert!(!stored.to_string_lossy().ends_with('/'));
+    assert!(!stored.to_string_lossy().ends_with('\\'));
 }
 
 #[test]

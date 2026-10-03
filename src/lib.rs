@@ -103,11 +103,13 @@ mod platform {
 
 #[cfg(windows)]
 mod platform {
+    use std::ffi::OsString;
     use std::fs;
     use std::io;
+    use std::os::windows::ffi::{OsStrExt, OsStringExt};
     use std::os::windows::fs::MetadataExt;
     use std::os::windows::fs::{symlink_dir as create_dir_link, symlink_file as create_file_link};
-    use std::path::Path;
+    use std::path::{Path, PathBuf};
 
     // FILE_ATTRIBUTE_DIRECTORY from the Win32 file attribute constants.
     const FILE_ATTRIBUTE_DIRECTORY: u32 = 0x10;
@@ -128,11 +130,32 @@ mod platform {
             fs::metadata(probe)?.is_dir()
         };
 
+        let win_target = win_normalise_auto_target(target, target_is_dir);
         if target_is_dir {
-            create_dir_link(target, link)
+            create_dir_link(&win_target, link)
         } else {
-            create_file_link(target, link)
+            create_file_link(&win_target, link)
         }
+    }
+
+    fn win_normalise_auto_target(target: &Path, is_dir: bool) -> PathBuf {
+        let mut target: Vec<u16> = target
+            .as_os_str()
+            .encode_wide()
+            .map(|c| {
+                if c == u16::from(b'/') {
+                    u16::from(b'\\')
+                } else {
+                    c
+                }
+            })
+            .collect();
+        if is_dir {
+            while target.last() == Some(&u16::from(b'\\')) {
+                target.pop();
+            }
+        }
+        PathBuf::from(OsString::from_wide(&target))
     }
 
     pub(super) fn remove_symlink_file(link: &Path) -> io::Result<()> {
