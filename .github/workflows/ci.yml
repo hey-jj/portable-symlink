@@ -13,4 +13,8 @@ jobs:
       - uses: actions/checkout@v4
       - run: cargo test
       - name: D3 defect tests (scenario_rm_03 scenario_rm_05 scenario_rm_06 scenario_rm_11)
-        run: cargo test scenario_rm_03 scenario_rm_05 scenario_rm_06 scenario_rm_11
+        run: |
+          cargo test scenario_rm_03
+          cargo test scenario_rm_05
+          cargo test scenario_rm_06
+          cargo test scenario_rm_11
